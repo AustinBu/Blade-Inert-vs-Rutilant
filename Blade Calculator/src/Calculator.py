@@ -39,6 +39,11 @@ class Calculator:
         self.ults = 0
         self.ultCounter = 0
 
+        self.totalDamagePercent = 0
+        self.basicDamagePercent = 0
+        self.talentDamagePercent = 0
+        self.ultDamagePercent = 0
+
         self.inert = 0.
         self.rutilant = 0.
 
@@ -49,7 +54,7 @@ class Calculator:
         self.frame2 = tk.Frame(self.frame, height=60)
         self.frame2.grid(row=2, column=0, pady=50)
         self.frame3 = tk.Frame(self.frame, height=60)
-        self.frame3.grid(row=3, column=0, pady=200)
+        self.frame3.grid(row=3, column=0, pady=100)
 
         # Frame 0
         self.lblTitle = tk.Label(self.frame0, text='BLADE \nINERT VS RUTILANT', font='Broadway 50', bg='#40af20',
@@ -117,16 +122,14 @@ class Calculator:
             self.txtResults.set("Please select a light cone")
             return
 
-
-
         recommended = "Rutilant is " + str(round(((self.rutilant / self.inert * 100) - 100), 2)) \
                       + "% better than Inert" if self.rutilant > self.inert \
             else "Inert is " + str(round(((self.inert / self.rutilant * 100) - 100), 2)) + "% better than Rutilant"
         self.txtResults.set(
             "After " + self.turns.get() + " turns and getting hit " + self.hits.get() + " times per turn:"
-            + "\nBasics: " + str(self.basics)
-            + "\nTalents: " + str(self.talents)
-            + "\nUlts: " + str(self.ults)
+            + "\nBasics: " + str(self.basics) + " (" + str(self.basicDamagePercent) + "%)"
+            + "\nTalents: " + str(self.talents) + " (" + str(self.talentDamagePercent) + "%)"
+            + "\nUlts: " + str(self.ults) + " (" + str(self.ultDamagePercent) + "%)"
             + "\n" + recommended)
         print(self.rutilant)
         print(self.inert)
@@ -144,11 +147,13 @@ class Calculator:
             self.ultCounter += 30
             self.check_talent_counter()
             self.check_ultimate_counter()
+            self.check_talent_counter()
             for j in range(int(self.hits.get())):
                 self.talentCounter += 1
                 self.ultCounter += 10
                 self.check_talent_counter()
                 self.check_ultimate_counter()
+                self.check_talent_counter()
 
     def check_talent_counter(self):
         if self.talentCounter >= self.required_talent_stacks:
@@ -159,16 +164,24 @@ class Calculator:
     def check_ultimate_counter(self):
         if self.ultCounter >= 130:
             self.ults += 1
-            self.ultCounter = 0
+            self.ultCounter = 5
             self.talentCounter += 1
 
     def damage_calc_bis(self):
-        self.inert = self.basics * 1.64 + (((1.1 * self.talents) + (self.ultMultiplier * self.ults)) * 1.79)
-        self.rutilant = self.basics * 1.84 + (((1.1 * self.talents) + (self.ultMultiplier * self.ults)) * 1.64)
+        self.totalDamagePercent = self.basics * 1.64 + (1.1 * self.talents * 1.84) + (self.ultMultiplier * self.ults * 1.64)
+        self.basicDamagePercent = round(self.basics * 1.64 * 100 / self.totalDamagePercent, 2)
+        self.talentDamagePercent = round(self.talents * 1.1 * 1.84 * 100 / self.totalDamagePercent, 2)
+        self.ultDamagePercent = round(self.ults * self.ultMultiplier * 1.64 * 100 / self.totalDamagePercent, 2)
+        self.inert = self.basics * 1.64 + (1.1 * self.talents * 1.99) + (self.ultMultiplier * self.ults * 1.79)
+        self.rutilant = self.basics * 1.84 + (1.1 * self.talents * 1.84) + (self.ultMultiplier * self.ults * 1.64)
 
     def damage_calc_s5_vow(self):
-        self.inert = self.basics * 2 + (((1.1 * self.talents) + (self.ultMultiplier * self.ults)) * 2.15)
-        self.rutilant = self.basics * 2.2 + (((1.1 * self.talents) + (self.ultMultiplier * self.ults)) * 2)
+        self.totalDamagePercent = self.basics * 2 + ((1.1 * self.talents) * 2.2) + ((self.ultMultiplier * self.ults) * 2)
+        self.basicDamagePercent = round(self.basics * 2 * 100 / self.totalDamagePercent, 2)
+        self.talentDamagePercent = round(self.talents * 1.1 * 2.2 * 100 / self.totalDamagePercent, 2)
+        self.ultDamagePercent = round(self.ults * self.ultMultiplier * 2 * 100 / self.totalDamagePercent, 2)
+        self.inert = self.basics * 2 + (1.1 * self.talents * 2.35) + (self.ultMultiplier * self.ults * 2.15)
+        self.rutilant = self.basics * 2.2 + (1.1 * self.talents*2.2) + (self.ultMultiplier * self.ults * 2)
 
     def reset(self):
         self.basics = 0
