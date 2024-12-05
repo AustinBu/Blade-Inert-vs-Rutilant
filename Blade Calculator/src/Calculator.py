@@ -13,7 +13,7 @@ class Calculator:
         time.sleep(1)
         self.master.attributes('-fullscreen', True)
         self.master.attributes('-transparent', True)
-        self.master.resizable(False, False)
+        self.master.resizable(True, True)
         self.frame = tk.Frame(self.master, bg='#40af20')
         self.frame.pack(fill=Y, expand=True)
 
@@ -25,6 +25,7 @@ class Calculator:
 
         self.required_talent_stacks = 5
         self.ultMultiplier = 1.9
+        self.talentMultiplier = 1.1
         self.turns = tk.StringVar()
         self.hits = tk.StringVar()
         self.cone = tk.StringVar()
@@ -39,7 +40,7 @@ class Calculator:
         self.ults = 0
         self.ultCounter = 0
 
-        self.totalDamagePercent = 0
+        self.totalDamage = 0
         self.basicDamagePercent = 0
         self.talentDamagePercent = 0
         self.ultDamagePercent = 0
@@ -108,6 +109,7 @@ class Calculator:
             self.ultMultiplier = 3.25
         elif self.eidolon.get() == self.eidolon_options[2]:
             self.required_talent_stacks = 4
+            self.talentMultiplier = 1.6
             self.ultMultiplier = 3.25
         else:
             self.txtResults.set("Please select an eidolon")
@@ -147,41 +149,49 @@ class Calculator:
             self.ultCounter += 30
             self.check_talent_counter()
             self.check_ultimate_counter()
-            self.check_talent_counter()
             for j in range(int(self.hits.get())):
                 self.talentCounter += 1
                 self.ultCounter += 10
                 self.check_talent_counter()
                 self.check_ultimate_counter()
-                self.check_talent_counter()
 
     def check_talent_counter(self):
         if self.talentCounter >= self.required_talent_stacks:
             self.talents += 1
             self.talentCounter = 0
             self.ultCounter += 10
+            self.check_ultimate_counter()
 
     def check_ultimate_counter(self):
         if self.ultCounter >= 130:
             self.ults += 1
             self.ultCounter = 5
             self.talentCounter += 1
+            self.check_talent_counter()
 
     def damage_calc_bis(self):
-        self.totalDamagePercent = self.basics * 1.64 + (1.1 * self.talents * 1.84) + (self.ultMultiplier * self.ults * 1.64)
-        self.basicDamagePercent = round(self.basics * 1.64 * 100 / self.totalDamagePercent, 2)
-        self.talentDamagePercent = round(self.talents * 1.1 * 1.84 * 100 / self.totalDamagePercent, 2)
-        self.ultDamagePercent = round(self.ults * self.ultMultiplier * 1.64 * 100 / self.totalDamagePercent, 2)
-        self.inert = self.basics * 1.64 + (1.1 * self.talents * 1.99) + (self.ultMultiplier * self.ults * 1.79)
-        self.rutilant = self.basics * 1.84 + (1.1 * self.talents * 1.84) + (self.ultMultiplier * self.ults * 1.64)
+        basic_damage = self.basics * 1.64
+        talent_damage = self.talents * self.talentMultiplier * 1.84
+        ult_damage = self.ults * self.ultMultiplier * 1.64
+        self.totalDamage = basic_damage + talent_damage + ult_damage
+        self.basicDamagePercent = round(basic_damage * 100 / self.totalDamage, 2)
+        self.talentDamagePercent = round(talent_damage * 100 / self.totalDamage, 2)
+        self.ultDamagePercent = round(ult_damage * 100 / self.totalDamage, 2)
+        self.inert = basic_damage + (self.talents * self.talentMultiplier * 1.99) + \
+            (self.ultMultiplier * self.ults * 1.79)
+        self.rutilant = self.basics * 1.84 + talent_damage + ult_damage
 
     def damage_calc_s5_vow(self):
-        self.totalDamagePercent = self.basics * 2 + ((1.1 * self.talents) * 2.2) + ((self.ultMultiplier * self.ults) * 2)
-        self.basicDamagePercent = round(self.basics * 2 * 100 / self.totalDamagePercent, 2)
-        self.talentDamagePercent = round(self.talents * 1.1 * 2.2 * 100 / self.totalDamagePercent, 2)
-        self.ultDamagePercent = round(self.ults * self.ultMultiplier * 2 * 100 / self.totalDamagePercent, 2)
-        self.inert = self.basics * 2 + (1.1 * self.talents * 2.35) + (self.ultMultiplier * self.ults * 2.15)
-        self.rutilant = self.basics * 2.2 + (1.1 * self.talents*2.2) + (self.ultMultiplier * self.ults * 2)
+        basic_damage = self.basics * 2
+        talent_damage = self.talents * self.talentMultiplier * 2.2
+        ult_damage = self.ults * self.ultMultiplier * 2
+        self.totalDamage = basic_damage + talent_damage + ult_damage
+        self.basicDamagePercent = round(basic_damage * 100 / self.totalDamage, 2)
+        self.talentDamagePercent = round(talent_damage * 100 / self.totalDamage, 2)
+        self.ultDamagePercent = round(ult_damage * 100 / self.totalDamage, 2)
+        self.inert = basic_damage + (self.talents * self.talentMultiplier * 2.35) + \
+            (self.ultMultiplier * self.ults * 2.15)
+        self.rutilant = (self.basics * 2.2) + talent_damage + ult_damage
 
     def reset(self):
         self.basics = 0
